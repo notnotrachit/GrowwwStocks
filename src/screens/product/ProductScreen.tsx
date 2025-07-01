@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  StyleSheet,
   Alert,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -19,7 +18,8 @@ import {
   LoadingState,
   Stock 
 } from '../../types';
-import { COLORS, DIMENSIONS } from '../../constants';
+import { productScreenStyles as styles } from '../../styles/screens/ProductScreen.styles';
+import { COLORS } from '../../constants';
 import { alphaVantageApi } from '../../services/alphaVantageApi';
 import { watchlistService } from '../../services/watchlistService';
 
@@ -28,6 +28,7 @@ import ErrorMessage from '../../components/common/ErrorMessage';
 import StockChart from '../../components/charts/StockChart';
 import AddToWatchlistModal from '../../components/modals/AddToWatchlistModal';
 import { isCompanyDataEmpty, hasMinimalCompanyData } from '../../utils/companyDataValidator';
+import { getAvailableMetrics, getAvailableCompanyInfo, hasValue } from '../../utils/stockDataHelpers';
 
 type ProductScreenRouteProp = RouteProp<RootStackParamList, 'ProductScreen'>;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -99,11 +100,7 @@ const ProductScreen: React.FC = () => {
   };
 
   const handleWatchlistToggle = () => {
-    if (isInWatchlist) {
-      handleRemoveFromWatchlist();
-    } else {
-      setShowAddToWatchlist(true);
-    }
+    setShowAddToWatchlist(true);
   };
 
   const handleRemoveFromWatchlist = async () => {
@@ -135,39 +132,22 @@ const ProductScreen: React.FC = () => {
   const createStockObject = (): Stock | null => {
     if (!companyData || !chartData) return null;
 
-    const latestDate = Object.keys(chartData['Time Series (Daily)'])[0];
-    const latestData = chartData['Time Series (Daily)'][latestDate];
-    const previousDate = Object.keys(chartData['Time Series (Daily)'])[1];
-    const previousData = chartData['Time Series (Daily)'][previousDate];
+    const dates = Object.keys(chartData['Time Series (Daily)']).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    
+    if (dates.length < 1) return null;
 
+    const latestDate = dates[0];
+    const latestData = chartData['Time Series (Daily)'][latestDate];
     const currentPrice = parseFloat(latestData['4. close']);
-    const previousPrice = parseFloat(previousData['4. close']);
-    const change = currentPrice - previousPrice;
-    const changePercent = ((change / previousPrice) * 100).toFixed(2);
 
     return {
       symbol: companyData.Symbol,
       name: companyData.Name,
       price: currentPrice.toString(),
-      change: change.toString(),
-      changePercent: `${changePercent}%`,
       volume: latestData['5. volume'],
     };
   };
 
-  const formatValue = (value: string | undefined, prefix = '', suffix = '') => {
-    if (!value || value === 'None' || value === '-') return 'N/A';
-    return `${prefix}${value}${suffix}`;
-  };
-
-  const formatMarketCap = (value: string) => {
-    if (!value || value === 'None') return 'N/A';
-    const num = parseFloat(value);
-    if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
-    if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
-    if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-    return `$${num.toLocaleString()}`;
-  };
 
   if (loadingState.isLoading) {
     return <LoadingSpinner message="Loading stock details..." />;
@@ -201,7 +181,22 @@ const ProductScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Chart Section */}
+        {/* Current Price Section */}
+        {stock && (
+          <View style={styles.priceSection}>
+            <View style={styles.priceHeader}>
+              <Text style={styles.stockSymbol}>{stock.symbol}</Text>
+              <Text style={styles.stockName}>{stock.name}</Text>
+            </View>
+            <View style={styles.priceInfo}>
+              <Text style={styles.currentPrice}>${parseFloat(stock.price).toFixed(4)}</Text>
+            </View>
+            <Text style={styles.lastUpdated}>
+              Volume: {parseInt(stock.volume).toLocaleString()}
+            </Text>
+          </View>
+        )}
+
         <View style={styles.chartContainer}>
           <StockChart 
             data={chartData['Time Series (Daily)']} 
@@ -214,136 +209,59 @@ const ProductScreen: React.FC = () => {
           renderNoDataMessage()
         ) : (
           <>
-            {/* Key Information */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Key Information</Text>
+            {(() => {
+              const metrics = getAvailableMetrics(companyData);
+              if (metrics.length === 0) return null;
               
-              <View style={styles.infoGrid}>
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Market Cap</Text>
-                  <Text style={styles.infoValue}>
-                    {formatMarketCap(companyData.MarketCapitalization)}
-                  </Text>
+              return (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Financial Metrics</Text>
+                  <View style={styles.infoGrid}>
+                    {metrics.map((metric, index) => (
+                      <View key={index} style={styles.infoItem}>
+                        <Text style={styles.infoLabel}>{metric.label}</Text>
+                        <Text style={styles.infoValue}>{metric.value}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
-                
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>P/E Ratio</Text>
-                  <Text style={styles.infoValue}>
-                    {formatValue(companyData.PERatio)}
-                  </Text>
-                </View>
-                
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>EPS</Text>
-                  <Text style={styles.infoValue}>
-                    {formatValue(companyData.EPS, '$')}
-                  </Text>
-                </View>
-                
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Beta</Text>
-                  <Text style={styles.infoValue}>
-                    {formatValue(companyData.Beta)}
-                  </Text>
-                </View>
-                
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>52W High</Text>
-                  <Text style={styles.infoValue}>
-                    {formatValue(companyData['52WeekHigh'], '$')}
-                  </Text>
-                </View>
-                
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>52W Low</Text>
-                  <Text style={styles.infoValue}>
-                    {formatValue(companyData['52WeekLow'], '$')}
-                  </Text>
-                </View>
-                
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Revenue TTM</Text>
-                  <Text style={styles.infoValue}>
-                    {formatMarketCap(companyData.RevenueTTM)}
-                  </Text>
-                </View>
-                
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Profit Margin</Text>
-                  <Text style={styles.infoValue}>
-                    {formatValue(companyData.ProfitMargin) !== 'N/A' 
-                      ? `${(parseFloat(companyData.ProfitMargin || '0') * 100).toFixed(2)}%`
-                      : 'N/A'
-                    }
-                  </Text>
-                </View>
-              </View>
-            </View>
+              );
+            })()}
 
-            {/* Company Overview */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Company Overview</Text>
+            {(() => {
+              const companyInfo = getAvailableCompanyInfo(companyData);
+              if (companyInfo.length === 0) return null;
               
-              <View style={styles.overviewItem}>
-                <Text style={styles.overviewLabel}>Sector</Text>
-                <Text style={styles.overviewValue}>
-                  {formatValue(companyData.Sector)}
-                </Text>
-              </View>
-              
-              <View style={styles.overviewItem}>
-                <Text style={styles.overviewLabel}>Industry</Text>
-                <Text style={styles.overviewValue}>
-                  {formatValue(companyData.Industry)}
-                </Text>
-              </View>
-              
-              <View style={styles.overviewItem}>
-                <Text style={styles.overviewLabel}>Exchange</Text>
-                <Text style={styles.overviewValue}>
-                  {formatValue(companyData.Exchange)}
-                </Text>
-              </View>
-              
-              <View style={styles.overviewItem}>
-                <Text style={styles.overviewLabel}>Country</Text>
-                <Text style={styles.overviewValue}>
-                  {formatValue(companyData.Country)}
-                </Text>
-              </View>
-              
-              <View style={styles.overviewItem}>
-                <Text style={styles.overviewLabel}>Currency</Text>
-                <Text style={styles.overviewValue}>
-                  {formatValue(companyData.Currency)}
-                </Text>
-              </View>
-              
-              <View style={styles.overviewItem}>
-                <Text style={styles.overviewLabel}>Fiscal Year End</Text>
-                <Text style={styles.overviewValue}>
-                  {formatValue(companyData.FiscalYearEnd)}
-                </Text>
-              </View>
+              return (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Company Information</Text>
+                  {companyInfo.map((info, index) => (
+                    <View key={index} style={styles.overviewItem}>
+                      <Text style={styles.overviewLabel}>{info.label}</Text>
+                      <Text style={styles.overviewValue}>{info.value}</Text>
+                    </View>
+                  ))}
+                </View>
+              );
+            })()}
 
-              {companyData.Description && companyData.Description !== 'None' && (
-                <View style={styles.descriptionContainer}>
-                  <Text style={styles.overviewLabel}>Description</Text>
-                  <Text style={styles.description}>
-                    {companyData.Description}
-                  </Text>
-                </View>
-              )}
-              
-              {companyData.OfficialSite && companyData.OfficialSite !== 'None' && (
-                <View style={styles.descriptionContainer}>
-                  <Text style={styles.overviewLabel}>Official Website</Text>
-                  <Text style={[styles.description, styles.websiteLink]}>
-                    {companyData.OfficialSite}
-                  </Text>
-                </View>
-              )}
-            </View>
+            {hasValue(companyData.Description) && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>About</Text>
+                <Text style={styles.description}>
+                  {companyData.Description}
+                </Text>
+              </View>
+            )}
+            
+            {hasValue(companyData.OfficialSite) && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Website</Text>
+                <Text style={[styles.description, styles.websiteLink]}>
+                  {companyData.OfficialSite}
+                </Text>
+              </View>
+            )}
           </>
         )}
       </ScrollView>
@@ -357,100 +275,5 @@ const ProductScreen: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  headerButton: {
-    marginRight: DIMENSIONS.padding,
-  },
-  chartContainer: {
-    backgroundColor: COLORS.surface,
-    marginBottom: DIMENSIONS.margin,
-  },
-  section: {
-    backgroundColor: COLORS.surface,
-    marginBottom: DIMENSIONS.margin,
-    padding: DIMENSIONS.padding,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: DIMENSIONS.margin,
-  },
-  infoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  infoItem: {
-    width: '48%',
-    marginBottom: DIMENSIONS.margin,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  overviewItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  overviewLabel: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    flex: 1,
-  },
-  overviewValue: {
-    fontSize: 16,
-    color: COLORS.text,
-    fontWeight: '500',
-    flex: 1,
-    textAlign: 'right',
-  },
-  descriptionContainer: {
-    marginTop: DIMENSIONS.margin,
-  },
-  description: {
-    fontSize: 14,
-    color: COLORS.text,
-    lineHeight: 20,
-    marginTop: 8,
-  },
-  noDataContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-  },
-  noDataTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  noDataMessage: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  websiteLink: {
-    color: COLORS.primary,
-    textDecorationLine: 'underline',
-  },
-});
 
 export default ProductScreen;

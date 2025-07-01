@@ -4,11 +4,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
   StyleSheet,
   Alert,
   Modal,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stock, Watchlist } from '../../types';
@@ -63,9 +63,10 @@ const AddToWatchlistModal: React.FC<AddToWatchlistModalProps> = ({
       const newWatchlist = await watchlistService.createWatchlist(newWatchlistName.trim());
       await watchlistService.addStockToWatchlist(newWatchlist.id, stock);
       
-      Alert.alert('Success', `Added ${stock.symbol} to new watchlist "${newWatchlistName}"`);
-      onSuccess();
-      onClose();
+      setNewWatchlistName('');
+      await loadWatchlists();
+      
+      Alert.alert('Success', `Added ${stock.symbol} to new watchlist "${newWatchlist.name}". You can continue managing other watchlists.`);
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to create watchlist');
     } finally {
@@ -83,67 +84,61 @@ const AddToWatchlistModal: React.FC<AddToWatchlistModalProps> = ({
     });
   };
 
-  const handleAddToSelectedWatchlists = async () => {
-    if (selectedWatchlists.length === 0) {
-      Alert.alert('Error', 'Please select at least one watchlist');
-      return;
-    }
-
+  const handleApplyChanges = async () => {
     if (!stock) return;
 
     setIsLoading(true);
     try {
-      const promises = selectedWatchlists.map(watchlistId =>
-        watchlistService.addStockToWatchlist(watchlistId, stock)
-      );
-      
-      await Promise.all(promises);
-      
-      const selectedNames = watchlists
-        .filter(w => selectedWatchlists.includes(w.id))
-        .map(w => w.name)
-        .join(', ');
-      
-      Alert.alert('Success', `Added ${stock.symbol} to: ${selectedNames}`);
+      const watchlistsToAdd: string[] = [];
+      const watchlistsToRemove: string[] = [];
+
+      for (const watchlist of watchlists) {
+        const hasStock = watchlist.stocks.some(s => s.symbol === stock.symbol);
+        const isSelected = selectedWatchlists.includes(watchlist.id);
+
+        if (hasStock && isSelected) {
+          watchlistsToRemove.push(watchlist.id);
+        } else if (!hasStock && isSelected) {
+          watchlistsToAdd.push(watchlist.id);
+        }
+      }
+
+      for (const watchlistId of watchlistsToRemove) {
+        await watchlistService.removeStockFromWatchlist(watchlistId, stock.symbol);
+      }
+
+      if (watchlistsToAdd.length > 0) {
+        await watchlistService.addStockToMultipleWatchlists(watchlistsToAdd, stock);
+      }
+
+      const addedNames = watchlists
+        .filter(w => watchlistsToAdd.includes(w.id))
+        .map(w => w.name);
+      const removedNames = watchlists
+        .filter(w => watchlistsToRemove.includes(w.id))
+        .map(w => w.name);
+
+      let message = '';
+      if (addedNames.length > 0) {
+        message += `Added to: ${addedNames.join(', ')}`;
+      }
+      if (removedNames.length > 0) {
+        if (message) message += '\n';
+        message += `Removed from: ${removedNames.join(', ')}`;
+      }
+
+      if (message) {
+        Alert.alert('Success', message);
+      }
+
+      setSelectedWatchlists([]);
+      await loadWatchlists();
       onSuccess();
-      onClose();
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to add to watchlists');
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to update watchlists');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const renderWatchlistItem = ({ item }: { item: Watchlist }) => {
-    const isSelected = selectedWatchlists.includes(item.id);
-    const hasStock = stock && item.stocks.some(s => s.symbol === stock.symbol);
-    
-    return (
-      <TouchableOpacity
-        style={[styles.watchlistItem, hasStock && styles.disabledItem]}
-        onPress={() => !hasStock && handleToggleWatchlist(item.id)}
-        disabled={!!hasStock}
-      >
-        <View style={styles.watchlistInfo}>
-          <Text style={[styles.watchlistName, hasStock && styles.disabledText]}>
-            {item.name}
-          </Text>
-          <Text style={[styles.stockCount, hasStock && styles.disabledText]}>
-            {item.stocks.length} stocks
-          </Text>
-        </View>
-        
-        {hasStock ? (
-          <Ionicons name="checkmark-circle" size={24} color={COLORS.positive} />
-        ) : (
-          <Ionicons
-            name={isSelected ? 'checkbox' : 'square-outline'}
-            size={24}
-            color={isSelected ? COLORS.primary : COLORS.textSecondary}
-          />
-        )}
-      </TouchableOpacity>
-    );
   };
 
   return (
@@ -158,71 +153,112 @@ const AddToWatchlistModal: React.FC<AddToWatchlistModalProps> = ({
         activeOpacity={1} 
         onPress={onClose}
       >
-        <TouchableOpacity 
-          style={styles.container} 
-          activeOpacity={1} 
-          onPress={(e) => e.stopPropagation()}
-        >
-        <View style={styles.header}>
-          <Text style={styles.title}>Add to Watchlist</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={24} color={COLORS.text} />
-          </TouchableOpacity>
-        </View>
-
-        {stock && (
-          <View style={styles.stockInfo}>
-            <Text style={styles.stockSymbol}>{stock.symbol}</Text>
-            <Text style={styles.stockName}>{stock.name}</Text>
-          </View>
-        )}
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Create New Watchlist</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="New Watchlist Name"
-              value={newWatchlistName}
-              onChangeText={setNewWatchlistName}
-              editable={!isLoading}
-            />
-            <TouchableOpacity
-              style={[styles.addButton, isLoading && styles.disabledButton]}
-              onPress={handleCreateNewWatchlist}
-              disabled={isLoading}
-            >
-              <Text style={styles.addButtonText}>Add</Text>
+        <View style={styles.modalContainer}>
+          <TouchableOpacity 
+            style={styles.container} 
+            activeOpacity={1} 
+            onPress={(e) => e.stopPropagation()}
+          >
+          <View style={styles.header}>
+            <Text style={styles.title}>Manage Watchlists</Text>
+            <TouchableOpacity style={styles.doneButton} onPress={onClose}>
+              <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Existing Watchlists</Text>
-          {watchlists.length > 0 ? (
-            <>
-              <ScrollView style={styles.watchlistList} showsVerticalScrollIndicator={false}>
-                {watchlists.map((item) => renderWatchlistItem({ item }))}
-              </ScrollView>
-              
-              {selectedWatchlists.length > 0 && (
-                <TouchableOpacity
-                  style={[styles.confirmButton, isLoading && styles.disabledButton]}
-                  onPress={handleAddToSelectedWatchlists}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.confirmButtonText}>
-                    Add to Selected ({selectedWatchlists.length})
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </>
-          ) : (
-            <Text style={styles.emptyText}>No watchlists found</Text>
+          {stock && (
+            <View style={styles.stockInfo}>
+              <Text style={styles.stockSymbol}>{stock.symbol}</Text>
+              <Text style={styles.stockName}>{stock.name}</Text>
+            </View>
           )}
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Create New Watchlist</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="New Watchlist Name"
+                value={newWatchlistName}
+                onChangeText={setNewWatchlistName}
+                editable={!isLoading}
+              />
+              <TouchableOpacity
+                style={[styles.addButton, isLoading && styles.disabledButton]}
+                onPress={handleCreateNewWatchlist}
+                disabled={isLoading}
+              >
+                <Text style={styles.addButtonText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={[styles.section, styles.lastSection]}>
+            <Text style={styles.sectionTitle}>Existing Watchlists</Text>
+            <Text style={styles.instructionText}>
+              Tap to add/remove from watchlists
+            </Text>
+            
+            {watchlists.length > 0 ? (
+              <>
+                <ScrollView style={styles.watchlistList} showsVerticalScrollIndicator={false}>
+                  {watchlists.map((item) => {
+                    const isSelected = selectedWatchlists.includes(item.id);
+                    const hasStock = stock && item.stocks.some(s => s.symbol === stock.symbol);
+                    
+                    return (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.watchlistItem}
+                        onPress={() => handleToggleWatchlist(item.id)}
+                      >
+                        <View style={styles.watchlistInfo}>
+                          <Text style={styles.watchlistName}>
+                            {item.name}
+                          </Text>
+                          <Text style={styles.stockCount}>
+                            {item.stocks.length} stocks
+                            {hasStock && <Text style={styles.currentlyInText}> - Currently in</Text>}
+                          </Text>
+                        </View>
+                        
+                        {hasStock ? (
+                          <Ionicons 
+                            name={isSelected ? 'remove-circle' : 'checkmark-circle'} 
+                            size={24} 
+                            color={isSelected ? COLORS.error : COLORS.positive} 
+                          />
+                        ) : (
+                          <Ionicons
+                            name={isSelected ? 'add-circle' : 'add-circle-outline'}
+                            size={24}
+                            color={isSelected ? COLORS.primary : COLORS.textSecondary}
+                          />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+                
+                {selectedWatchlists.length > 0 && (
+                  <TouchableOpacity
+                    style={[styles.confirmButton, isLoading && styles.disabledButton]}
+                    onPress={handleApplyChanges}
+                    disabled={isLoading}
+                  >
+                    <Text style={styles.confirmButtonText}>
+                      Apply Changes ({selectedWatchlists.length})
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : (
+              <Text style={styles.emptyText}>No watchlists found</Text>
+            )}
+          </View>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
-    </TouchableOpacity>
     </Modal>
   );
 };
@@ -232,13 +268,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+    margin: 0,
+    padding: 0,
   },
-  container: {
+  modalContainer: {
     backgroundColor: COLORS.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '80%',
-    paddingBottom: 20,
+    height: '80%',
+    width: '100%',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  container: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -252,6 +297,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: COLORS.text,
+  },
+  doneButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: DIMENSIONS.borderRadius,
+  },
+  doneButtonText: {
+    color: COLORS.surface,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   stockInfo: {
     padding: DIMENSIONS.padding,
@@ -270,11 +326,20 @@ const styles = StyleSheet.create({
   section: {
     padding: DIMENSIONS.padding,
   },
+  lastSection: {
+    paddingBottom: 34, // Safe area padding only for the last section
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: COLORS.text,
     marginBottom: 12,
+  },
+  instructionText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginBottom: 12,
+    fontStyle: 'italic',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -324,6 +389,10 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: 2,
   },
+  currentlyInText: {
+    color: COLORS.positive,
+    fontWeight: '500',
+  },
   confirmButton: {
     backgroundColor: COLORS.primary,
     padding: 16,
@@ -338,12 +407,6 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
-  },
-  disabledItem: {
-    opacity: 0.6,
-  },
-  disabledText: {
-    color: COLORS.textSecondary,
   },
   emptyText: {
     textAlign: 'center',

@@ -2,13 +2,11 @@ export interface Stock {
   symbol: string;
   name: string;
   price: string;
-  change: string;
-  changePercent: string;
   volume: string;
 }
 
 // Alpha Vantage API response forma
-  last_updated: string;t
+
 export interface AlphaVantageStock {
   ticker: string;
   price: string;

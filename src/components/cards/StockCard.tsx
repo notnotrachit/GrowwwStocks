@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Stock } from '../../types';
-import { COLORS, DIMENSIONS } from '../../constants';
+import { stockCardStyles as styles } from '../../styles/components/StockCard.styles';
+import { getPercentageChangeStyle, getPriceChangeStyle } from '../../utils/styleUtils';
 
 interface StockCardProps {
   stock: Stock;
@@ -24,7 +25,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onPress }) => {
         </Text>
         <Text style={[
           styles.changePercent,
-          { color: isPositive ? COLORS.positive : COLORS.negative }
+          getPercentageChangeStyle(changePercent)
         ]}>
           {changePercent}
         </Text>
@@ -40,7 +41,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onPress }) => {
         </Text>
         <Text style={[
           styles.change,
-          { color: isPositive ? COLORS.positive : COLORS.negative }
+          getPriceChangeStyle(change)
         ]}>
           {isPositive ? '+' : ''}${parseFloat(change).toFixed(2)}
         </Text>
@@ -48,60 +49,5 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onPress }) => {
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: COLORS.surface,
-    borderRadius: DIMENSIONS.borderRadius,
-    padding: DIMENSIONS.padding,
-    margin: DIMENSIONS.margin / 2,
-    flex: 1,
-    minHeight: 120,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: DIMENSIONS.cardElevation,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: DIMENSIONS.cardElevation,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  symbol: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    flex: 1,
-  },
-  changePercent: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  name: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-    minHeight: 32,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  price: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  change: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-});
 
 export default StockCard;

@@ -54,7 +54,6 @@ export class WatchlistService {
 
     const watchlist = watchlists[watchlistIndex];
     
-    // Check if stock already exists in watchlist
     if (watchlist.stocks.some(s => s.symbol === stock.symbol)) {
       throw new Error('Stock already exists in this watchlist');
     }
@@ -63,6 +62,41 @@ export class WatchlistService {
     watchlist.updatedAt = new Date().toISOString();
     
     await this.saveWatchlists(watchlists);
+  }
+
+  async addStockToMultipleWatchlists(watchlistIds: string[], stock: Stock): Promise<void> {    
+    const watchlists = await this.getWatchlists();
+    const errors: string[] = [];
+    let hasChanges = false;
+    const addedToWatchlists: string[] = [];
+
+    for (const watchlistId of watchlistIds) {
+      const watchlistIndex = watchlists.findIndex(w => w.id === watchlistId);
+      
+      if (watchlistIndex === -1) {
+        errors.push(`Watchlist with ID ${watchlistId} not found`);
+        continue;
+      }
+
+      const watchlist = watchlists[watchlistIndex];
+      
+      if (watchlist.stocks.some(s => s.symbol === stock.symbol)) {
+        errors.push(`Stock already exists in watchlist "${watchlist.name}"`);
+        continue;
+      }
+      watchlist.stocks.push(stock);
+      watchlist.updatedAt = new Date().toISOString();
+      addedToWatchlists.push(watchlist.name);
+      hasChanges = true;
+    }
+
+    if (hasChanges) {
+      await this.saveWatchlists(watchlists);
+    }
+
+    if (errors.length > 0) {
+      throw new Error(errors.join('; '));
+    }
   }
 
   async removeStockFromWatchlist(watchlistId: string, symbol: string): Promise<void> {
