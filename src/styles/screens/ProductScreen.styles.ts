@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, DIMENSIONS } from '../../constants';
+import { DIMENSIONS } from '../../constants';
+import { ThemeColors } from '../../hooks/useTheme';
 
-export const productScreenStyles = StyleSheet.create({
+export const productScreenStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.background,
   },
   headerButton: {
     marginRight: DIMENSIONS.padding,
@@ -12,64 +13,133 @@ export const productScreenStyles = StyleSheet.create({
   
   // Price Section
   priceSection: {
-    backgroundColor: COLORS.surface,
-    padding: DIMENSIONS.padding,
+    backgroundColor: colors.surface,
+    padding: DIMENSIONS.padding + 4,
     marginBottom: DIMENSIONS.margin,
+    borderRadius: 16,
+    marginHorizontal: DIMENSIONS.margin,
+    marginTop: DIMENSIONS.margin,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   priceHeader: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   stockTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   stockTitleText: {
-    marginLeft: 12,
+    marginLeft: 16,
     flex: 1,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  websiteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    marginLeft: 8,
+  },
+  websiteButtonText: {
+    color: colors.primary,
+    fontWeight: '600',
+    fontSize: 13,
+    letterSpacing: 0.1,
+  },
   stockSymbol: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.text,
+    fontSize: 26,
+    fontWeight: '700',
+    color: colors.text,
+    letterSpacing: 0.5,
   },
   stockName: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
+    fontSize: 15,
+    color: colors.textSecondary,
     marginTop: 4,
+    fontWeight: '500',
   },
   priceInfo: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   currentPrice: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: COLORS.text,
+    fontSize: 36,
+    fontWeight: '800',
+    color: colors.text,
     marginRight: 12,
+    letterSpacing: -0.5,
   },
   lastUpdated: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  
+  // Tags Section
+  tagsContainer: {
+    backgroundColor: colors.surface,
+    marginHorizontal: DIMENSIONS.margin,
+    marginBottom: DIMENSIONS.margin,
+    borderRadius: 16,
+    padding: DIMENSIONS.padding,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  tagsWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
   },
   
   // Chart Section
   chartContainer: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
+    marginHorizontal: DIMENSIONS.margin,
     marginBottom: DIMENSIONS.margin,
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   
   // Sections
   section: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
+    marginHorizontal: DIMENSIONS.margin,
     marginBottom: DIMENSIONS.margin,
-    padding: DIMENSIONS.padding,
+    padding: DIMENSIONS.padding + 4,
+    borderRadius: 16,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: DIMENSIONS.margin,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: DIMENSIONS.margin + 4,
+    letterSpacing: 0.3,
   },
   
   // Info Grid
@@ -77,72 +147,83 @@ export const productScreenStyles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    gap: 8,
   },
   infoItem: {
     width: '48%',
-    marginBottom: DIMENSIONS.margin,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.text,
   },
   
   // Overview Items
   overviewItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
+    flexDirection: 'column',
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: colors.border,
   },
   overviewLabel: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    flex: 1,
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '500',
+    marginBottom: 4,
   },
   overviewValue: {
     fontSize: 16,
-    color: COLORS.text,
-    fontWeight: '500',
-    flex: 1,
-    textAlign: 'right',
+    color: colors.text,
+    fontWeight: '600',
+    lineHeight: 22,
   },
   
   // Description
   description: {
-    fontSize: 14,
-    color: COLORS.text,
-    lineHeight: 20,
+    fontSize: 15,
+    color: colors.text,
+    lineHeight: 24,
+    fontWeight: '400',
   },
   websiteLink: {
-    color: COLORS.primary,
+    color: colors.primary,
     textDecorationLine: 'underline',
   },
   
   // No Data State
   noDataContainer: {
     alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 20,
+    paddingVertical: 48,
+    paddingHorizontal: 24,
   },
   noDataTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginTop: 16,
-    marginBottom: 8,
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 20,
+    marginBottom: 12,
+    letterSpacing: 0.3,
   },
   noDataMessage: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
+    fontSize: 15,
+    color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 24,
+    fontWeight: '400',
+  },
+  
+  // About Section
+  aboutLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  aboutText: {
+    fontSize: 15,
+    color: colors.text,
+    lineHeight: 22,
+    fontWeight: '400',
+  },
+  aboutToggle: {
+    color: colors.primary,
+    fontWeight: '600',
+    fontSize: 13,
+    marginTop: 2,
   },
 });

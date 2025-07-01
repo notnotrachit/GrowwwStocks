@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, DIMENSIONS } from '../../constants';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { DIMENSIONS } from "../../constants";
+import { useTheme } from "../../hooks/useTheme";
 
 interface ErrorMessageProps {
   message: string;
@@ -9,9 +10,12 @@ interface ErrorMessageProps {
 }
 
 const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, onRetry }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   return (
     <View style={styles.container}>
-      <Ionicons name="alert-circle-outline" size={48} color={COLORS.error} />
+      <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
       <Text style={styles.message}>{message}</Text>
       {onRetry && (
         <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
@@ -22,31 +26,32 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, onRetry }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: DIMENSIONS.padding,
-  },
-  message: {
-    marginTop: DIMENSIONS.margin,
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginBottom: DIMENSIONS.margin,
-  },
-  retryButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: DIMENSIONS.borderRadius,
-  },
-  retryText: {
-    color: COLORS.surface,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: DIMENSIONS.padding,
+    },
+    message: {
+      marginTop: DIMENSIONS.margin,
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: "center",
+      marginBottom: DIMENSIONS.margin,
+    },
+    retryButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: DIMENSIONS.borderRadius,
+    },
+    retryText: {
+      color: colors.surface,
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+  });
 
 export default ErrorMessage;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { Ionicons } from "@expo/vector-icons";
 
-import { RootStackParamList, Stock, LoadingState } from '../../types';
-import { COLORS, DIMENSIONS } from '../../constants';
+import { RootStackParamList, Stock, LoadingState } from "../../types";
+import { DIMENSIONS } from "../../constants";
+import { useTheme } from "../../hooks/useTheme";
 
 type TopGainersLosersResponse = {
   top_gainers: Stock[];
@@ -24,16 +25,17 @@ type TopGainersLosersResponse = {
   };
 };
 // import { COLORS, DIMENSIONS } from '../../constants';
-import { alphaVantageApi } from '../../services/alphaVantageApi';
+import { alphaVantageApi } from "../../services/alphaVantageApi";
 
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import ErrorMessage from '../../components/common/ErrorMessage';
-import StockCard from '../../components/cards/StockCard';
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import ErrorMessage from "../../components/common/ErrorMessage";
+import StockCard from "../../components/cards/StockCard";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const ExploreScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useTheme();
   const [data, setData] = useState<TopGainersLosersResponse | null>(null);
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: true,
@@ -50,9 +52,9 @@ const ExploreScreen: React.FC = () => {
       headerRight: () => (
         <TouchableOpacity
           style={{ marginRight: 16 }}
-          onPress={() => navigation.navigate('SearchScreen')}
+          onPress={() => navigation.navigate("SearchScreen")}
         >
-          <Ionicons name="search" size={24} color={COLORS.surface} />
+          <Ionicons name="search" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       ),
     });
@@ -65,10 +67,10 @@ const ExploreScreen: React.FC = () => {
       setData(result);
       setLoadingState({ isLoading: false, error: null });
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error("Error loading data:", error);
       setLoadingState({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to load data',
+        error: error instanceof Error ? error.message : "Failed to load data",
       });
     }
   };
@@ -80,40 +82,43 @@ const ExploreScreen: React.FC = () => {
   };
 
   const handleStockPress = (stock: Stock) => {
-    navigation.navigate('ProductScreen', {
+    navigation.navigate("ProductScreen", {
       symbol: stock.symbol,
       name: stock.name,
     });
   };
 
-  const handleViewAll = (type: 'gainers' | 'losers') => {
+  const handleViewAll = (type: "gainers" | "losers") => {
     if (!data) return;
-    
-    const title = type === 'gainers' ? 'Top Gainers' : 'Top Losers';
-    navigation.navigate('ViewAllScreen', { type, title });
-  };
 
+    const title = type === "gainers" ? "Top Gainers" : "Top Losers";
+    navigation.navigate("ViewAllScreen", { type, title });
+  };
 
   const renderStockCard = ({ item }: { item: Stock }) => (
     <StockCard stock={item} onPress={() => handleStockPress(item)} />
   );
 
-  const renderSection = (title: string, stocks: Stock[], type: 'gainers' | 'losers') => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
+  const renderSection = (
+    title: string,
+    stocks: Stock[],
+    type: "gainers" | "losers"
+  ) => (
+    <View style={styles(colors).section}>
+      <View style={styles(colors).sectionHeader}>
+        <Text style={styles(colors).sectionTitle}>{title}</Text>
         <TouchableOpacity onPress={() => handleViewAll(type)}>
-          <Text style={styles.viewAllText}>View All</Text>
+          <Text style={styles(colors).viewAllText}>View All</Text>
         </TouchableOpacity>
       </View>
-      
+
       <FlatList
         data={stocks.slice(0, 4)} // Show only first 4 items
         renderItem={renderStockCard}
         keyExtractor={(item, index) => `${type}-${item.symbol}-${index}`}
         numColumns={2}
         scrollEnabled={false}
-        contentContainerStyle={styles.gridContainer}
+        contentContainerStyle={styles(colors).gridContainer}
       />
     </View>
   );
@@ -131,21 +136,21 @@ const ExploreScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles(colors).container}>
       <FlatList
         data={[1]}
         renderItem={() => (
           <View>
-            {renderSection('Top Gainers', data.top_gainers, 'gainers')}
-            {renderSection('Top Losers', data.top_losers, 'losers')}
+            {renderSection("Top Gainers", data.top_gainers, "gainers")}
+            {renderSection("Top Losers", data.top_losers, "losers")}
           </View>
         )}
-        keyExtractor={() => 'sections'}
+        keyExtractor={() => "sections"}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={[COLORS.primary]}
+            colors={[colors.primary]}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -154,34 +159,35 @@ const ExploreScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  section: {
-    marginBottom: DIMENSIONS.margin,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: DIMENSIONS.padding,
-    paddingVertical: DIMENSIONS.padding / 2,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  viewAllText: {
-    fontSize: 16,
-    color: COLORS.primary,
-    fontWeight: '500',
-  },
-  gridContainer: {
-    paddingHorizontal: DIMENSIONS.padding / 2,
-  },
-});
+const styles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    section: {
+      marginBottom: DIMENSIONS.margin,
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: DIMENSIONS.padding,
+      paddingVertical: DIMENSIONS.padding / 2,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: colors.text,
+    },
+    viewAllText: {
+      fontSize: 16,
+      color: colors.primary,
+      fontWeight: "500",
+    },
+    gridContainer: {
+      paddingHorizontal: DIMENSIONS.padding / 2,
+    },
+  });
 
 export default ExploreScreen;

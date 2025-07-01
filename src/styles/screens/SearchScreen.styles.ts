@@ -1,18 +1,19 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, DIMENSIONS } from '../../constants';
+import { DIMENSIONS } from '../../constants';
+import { ThemeColors } from '../../hooks/useTheme';
 
-export const searchScreenStyles = StyleSheet.create({
+export const searchScreenStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.background,
   },
   
   // Search Input Section
   searchContainer: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
     padding: DIMENSIONS.padding,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -20,7 +21,7 @@ export const searchScreenStyles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.background,
     borderRadius: DIMENSIONS.borderRadius,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -30,16 +31,16 @@ export const searchScreenStyles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
     fontSize: 16,
-    color: COLORS.text,
+    color: colors.text,
   },
   searchButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: DIMENSIONS.borderRadius,
   },
   searchButtonText: {
-    color: COLORS.surface,
+    color: colors.surface,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -49,7 +50,7 @@ export const searchScreenStyles = StyleSheet.create({
     padding: DIMENSIONS.padding,
   },
   resultItem: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
     borderRadius: DIMENSIONS.borderRadius,
     padding: DIMENSIONS.padding,
     marginBottom: DIMENSIONS.margin,
@@ -76,17 +77,17 @@ export const searchScreenStyles = StyleSheet.create({
   symbol: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: colors.text,
     marginLeft: 8,
   },
   matchScore: {
     fontSize: 12,
-    color: COLORS.primary,
+    color: colors.primary,
     fontWeight: '600',
   },
   companyName: {
     fontSize: 16,
-    color: COLORS.text,
+    color: colors.text,
     marginBottom: 8,
     lineHeight: 22,
   },
@@ -97,15 +98,15 @@ export const searchScreenStyles = StyleSheet.create({
   },
   type: {
     fontSize: 12,
-    color: COLORS.textSecondary,
-    backgroundColor: COLORS.background,
+    color: colors.textSecondary,
+    backgroundColor: colors.background,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
   region: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: colors.textSecondary,
   },
   
   // Error State
@@ -117,18 +118,18 @@ export const searchScreenStyles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: COLORS.error,
+    color: colors.error,
     textAlign: 'center',
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: DIMENSIONS.borderRadius,
   },
   retryText: {
-    color: COLORS.surface,
+    color: colors.surface,
     fontSize: 16,
     fontWeight: 'bold',
   },

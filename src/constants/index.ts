@@ -24,8 +24,8 @@ export const API_ENDPOINTS = {
   SYMBOL_SEARCH: 'SYMBOL_SEARCH',
 };
 
-// Colors
-export const COLORS = {
+// Colors - Light Theme
+export const LIGHT_COLORS = {
   primary: '#1E88E5',
   secondary: '#FFC107',
   success: '#4CAF50',
@@ -39,6 +39,24 @@ export const COLORS = {
   positive: '#4CAF50',
   negative: '#F44336',
 };
+
+// Colors - Dark Theme
+export const DARK_COLORS = {
+  primary: '#42A5F5',
+  secondary: '#FFD54F',
+  success: '#66BB6A',
+  error: '#EF5350',
+  warning: '#FFA726',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FFFFFF',
+  textSecondary: '#B0B0B0',
+  border: '#333333',
+  positive: '#66BB6A',
+  negative: '#EF5350',
+};
+
+export const COLORS = LIGHT_COLORS;
 
 // Dimensions
 export const DIMENSIONS = {

@@ -1,15 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-} from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
+import React, { useState, useEffect } from "react";
+import { View, FlatList, StyleSheet, RefreshControl } from "react-native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RouteProp } from "@react-navigation/native";
 
-import { RootStackParamList, Stock, LoadingState } from '../../types';
+import { RootStackParamList, Stock, LoadingState } from "../../types";
 
 type TopGainersLosersResponse = {
   top_gainers: Stock[];
@@ -20,19 +15,21 @@ type TopGainersLosersResponse = {
     last_updated: string;
   };
 };
-import { COLORS, DIMENSIONS, DEFAULT_VALUES } from '../../constants';
-import { alphaVantageApi } from '../../services/alphaVantageApi';
+import { DIMENSIONS, DEFAULT_VALUES } from "../../constants";
+import { useTheme } from "../../hooks/useTheme";
+import { alphaVantageApi } from "../../services/alphaVantageApi";
 
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import ErrorMessage from '../../components/common/ErrorMessage';
-import StockCard from '../../components/cards/StockCard';
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import ErrorMessage from "../../components/common/ErrorMessage";
+import StockCard from "../../components/cards/StockCard";
 
-type ViewAllScreenRouteProp = RouteProp<RootStackParamList, 'ViewAllScreen'>;
+type ViewAllScreenRouteProp = RouteProp<RootStackParamList, "ViewAllScreen">;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const ViewAllScreen: React.FC = () => {
   const route = useRoute<ViewAllScreenRouteProp>();
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useTheme();
   const { type, title } = route.params;
 
   const [stocks, setStocks] = useState<Stock[]>([]);
@@ -57,23 +54,24 @@ const ViewAllScreen: React.FC = () => {
       }
 
       const result = await alphaVantageApi.getTopGainersLosers();
-      const newStocks = type === 'gainers' ? result.top_gainers : result.top_losers;
-      
+      const newStocks =
+        type === "gainers" ? result.top_gainers : result.top_losers;
+
       if (page === 1) {
         setStocks(newStocks);
         setCurrentPage(1);
       } else {
         // For pagination simulation, we'll just show the same data
         // In a real app, you'd have actual pagination from the API
-        setStocks(prev => [...prev, ...newStocks]);
+        setStocks((prev) => [...prev, ...newStocks]);
       }
 
       setLoadingState({ isLoading: false, error: null });
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error("Error loading data:", error);
       setLoadingState({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to load data',
+        error: error instanceof Error ? error.message : "Failed to load data",
       });
     } finally {
       setIsLoadingMore(false);
@@ -95,7 +93,7 @@ const ViewAllScreen: React.FC = () => {
   };
 
   const handleStockPress = (stock: Stock) => {
-    navigation.navigate('ProductScreen', {
+    navigation.navigate("ProductScreen", {
       symbol: stock.symbol,
       name: stock.name,
     });
@@ -107,9 +105,9 @@ const ViewAllScreen: React.FC = () => {
 
   const renderFooter = () => {
     if (!isLoadingMore) return null;
-    
+
     return (
-      <View style={styles.footerLoader}>
+      <View style={createStyles(colors).footerLoader}>
         <LoadingSpinner size="small" message="Loading more..." />
       </View>
     );
@@ -126,22 +124,24 @@ const ViewAllScreen: React.FC = () => {
   }
 
   if (loadingState.error) {
-    return <ErrorMessage message={loadingState.error} onRetry={() => loadData(1)} />;
+    return (
+      <ErrorMessage message={loadingState.error} onRetry={() => loadData(1)} />
+    );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={createStyles(colors).container}>
       <FlatList
         data={stocks}
         renderItem={renderStockCard}
         keyExtractor={(item, index) => `${item.symbol}-${index}`}
         numColumns={2}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={createStyles(colors).listContainer}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={[COLORS.primary]}
+            colors={[colors.primary]}
           />
         }
         onEndReached={handleLoadMore}
@@ -158,18 +158,19 @@ const ViewAllScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  listContainer: {
-    padding: DIMENSIONS.padding / 2,
-  },
-  footerLoader: {
-    paddingVertical: DIMENSIONS.padding,
-    alignItems: 'center',
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    listContainer: {
+      padding: DIMENSIONS.padding / 2,
+    },
+    footerLoader: {
+      paddingVertical: DIMENSIONS.padding,
+      alignItems: "center",
+    },
+  });
 
 export default ViewAllScreen;

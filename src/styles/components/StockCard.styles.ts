@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, DIMENSIONS } from '../../constants';
+import { DIMENSIONS } from '../../constants';
+import { ThemeColors } from '../../hooks/useTheme';
 
-export const stockCardStyles = StyleSheet.create({
+export const stockCardStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
     borderRadius: DIMENSIONS.borderRadius,
     padding: DIMENSIONS.padding,
     margin: DIMENSIONS.margin / 2,
@@ -32,7 +33,7 @@ export const stockCardStyles = StyleSheet.create({
   symbol: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: colors.text,
     marginLeft: 8,
     flex: 1,
   },
@@ -42,7 +43,7 @@ export const stockCardStyles = StyleSheet.create({
   },
   name: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: colors.textSecondary,
     marginBottom: 8,
     minHeight: 32,
   },
@@ -54,7 +55,7 @@ export const stockCardStyles = StyleSheet.create({
   price: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: colors.text,
   },
   change: {
     fontSize: 12,
