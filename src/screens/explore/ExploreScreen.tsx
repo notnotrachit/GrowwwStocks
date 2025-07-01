@@ -4,16 +4,15 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  TextInput,
   StyleSheet,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 
 import { RootStackParamList, Stock, LoadingState } from '../../types';
+import { COLORS, DIMENSIONS } from '../../constants';
 
 type TopGainersLosersResponse = {
   top_gainers: Stock[];
@@ -24,7 +23,7 @@ type TopGainersLosersResponse = {
     last_updated: string;
   };
 };
-import { COLORS, DIMENSIONS } from '../../constants';
+// import { COLORS, DIMENSIONS } from '../../constants';
 import { alphaVantageApi } from '../../services/alphaVantageApi';
 
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -40,12 +39,24 @@ const ExploreScreen: React.FC = () => {
     isLoading: true,
     error: null,
   });
-  const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          style={{ marginRight: 16 }}
+          onPress={() => navigation.navigate('SearchScreen')}
+        >
+          <Ionicons name="search" size={24} color={COLORS.surface} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   const loadData = async () => {
     try {
@@ -82,28 +93,6 @@ const ExploreScreen: React.FC = () => {
     navigation.navigate('ViewAllScreen', { type, title });
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      Alert.alert('Error', 'Please enter a search term');
-      return;
-    }
-
-    try {
-      const searchResult = await alphaVantageApi.searchSymbol(searchQuery.trim());
-      
-      if (searchResult.bestMatches && searchResult.bestMatches.length > 0) {
-        const firstMatch = searchResult.bestMatches[0];
-        navigation.navigate('ProductScreen', {
-          symbol: firstMatch['1. symbol'],
-          name: firstMatch['2. name'],
-        });
-      } else {
-        Alert.alert('No Results', 'No stocks found for your search term');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to search stocks');
-    }
-  };
 
   const renderStockCard = ({ item }: { item: Stock }) => (
     <StockCard stock={item} onPress={() => handleStockPress(item)} />
@@ -143,22 +132,8 @@ const ExploreScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Ionicons name="search" size={20} color={COLORS.textSecondary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search here..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={handleSearch}
-            returnKeyType="search"
-          />
-        </View>
-      </View>
-
       <FlatList
-        data={[1]} // Dummy data for single item
+        data={[1]}
         renderItem={() => (
           <View>
             {renderSection('Top Gainers', data.top_gainers, 'gainers')}
@@ -183,26 +158,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-  searchContainer: {
-    backgroundColor: COLORS.surface,
-    padding: DIMENSIONS.padding,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderRadius: DIMENSIONS.borderRadius,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 8,
-    fontSize: 16,
-    color: COLORS.text,
   },
   section: {
     marginBottom: DIMENSIONS.margin,

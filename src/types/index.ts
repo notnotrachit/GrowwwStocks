@@ -1,4 +1,6 @@
 export interface Stock {
+  change: string;
+  changePercent: string;
   symbol: string;
   name: string;
   price: string;
@@ -128,6 +130,7 @@ export type RootStackParamList = {
   MainTabs: undefined;
   ProductScreen: { symbol: string; name: string };
   ViewAllScreen: { type: 'gainers' | 'losers'; title: string };
+  SearchScreen: undefined;
 };
 
 export type MainTabParamList = {

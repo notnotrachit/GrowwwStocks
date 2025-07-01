@@ -145,6 +145,8 @@ const ProductScreen: React.FC = () => {
       name: companyData.Name,
       price: currentPrice.toString(),
       volume: latestData['5. volume'],
+      change: (currentPrice - parseFloat(latestData['1. open'])).toFixed(2),
+      changePercent: ((currentPrice - parseFloat(latestData['1. open'])) / parseFloat(latestData['1. open']) * 100).toFixed(2) + '%',
     };
   };
 

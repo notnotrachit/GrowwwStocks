@@ -32,7 +32,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onPress }) => {
       </View>
       
       <Text style={styles.name} numberOfLines={2}>
-        {stock.name || 'Unknown Stock'}
+        {/* {stock.name || 'Unknown Stock'} */}
       </Text>
       
       <View style={styles.footer}>

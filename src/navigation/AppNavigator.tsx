@@ -12,6 +12,7 @@ import ExploreScreen from '../screens/explore/ExploreScreen';
 import WatchlistScreen from '../screens/watchlist/WatchlistScreen';
 import ProductScreen from '../screens/product/ProductScreen';
 import ViewAllScreen from '../screens/viewall/ViewAllScreen';
+import SearchScreen from '../screens/search/SearchScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -98,6 +99,13 @@ export default function AppNavigator() {
           options={({ route }) => ({
             title: route.params.title,
           })}
+        />
+        <Stack.Screen 
+          name="SearchScreen" 
+          component={SearchScreen}
+          options={{
+            title: 'Search Stocks',
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>
