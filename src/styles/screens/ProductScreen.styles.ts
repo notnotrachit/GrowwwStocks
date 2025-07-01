@@ -19,6 +19,14 @@ export const productScreenStyles = StyleSheet.create({
   priceHeader: {
     marginBottom: 12,
   },
+  stockTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  stockTitleText: {
+    marginLeft: 12,
+    flex: 1,
+  },
   stockSymbol: {
     fontSize: 24,
     fontWeight: 'bold',

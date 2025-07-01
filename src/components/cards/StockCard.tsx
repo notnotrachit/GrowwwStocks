@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Stock } from '../../types';
 import { stockCardStyles as styles } from '../../styles/components/StockCard.styles';
 import { getPercentageChangeStyle, getPriceChangeStyle } from '../../utils/styleUtils';
+import StockLogo from '../common/StockLogo';
 
 interface StockCardProps {
   stock: Stock;
@@ -11,7 +12,9 @@ interface StockCardProps {
 
 const StockCard: React.FC<StockCardProps> = ({ stock, onPress }) => {
   // Safely handle potentially undefined values
-  const changePercent = stock.changePercent || '0%';
+  const rawChangePercent = stock.changePercent || '0%';
+  const percentValue = parseFloat(rawChangePercent.replace('%', '')) || 0;
+  const changePercent = `${percentValue.toFixed(2)}%`;
   const change = stock.change || '0';
   const price = stock.price || '0';
   
@@ -20,9 +23,12 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onPress }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.header}>
-        <Text style={styles.symbol} numberOfLines={1}>
-          {stock.symbol || 'N/A'}
-        </Text>
+        <View style={styles.symbolContainer}>
+          <StockLogo symbol={stock.symbol || ''} size={24} />
+          <Text style={styles.symbol} numberOfLines={1}>
+            {stock.symbol || 'N/A'}
+          </Text>
+        </View>
         <Text style={[
           styles.changePercent,
           getPercentageChangeStyle(changePercent)

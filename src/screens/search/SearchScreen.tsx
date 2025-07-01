@@ -15,6 +15,7 @@ import { RootStackParamList, SearchResult, LoadingState } from '../../types';
 import { alphaVantageApi } from '../../services/alphaVantageApi';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import EmptyState from '../../components/common/EmptyState';
+import StockLogo from '../../components/common/StockLogo';
 import { searchScreenStyles as styles } from '../../styles/screens/SearchScreen.styles';
 import { COLORS } from '../../constants';
 
@@ -69,10 +70,13 @@ const SearchScreen: React.FC = () => {
       onPress={() => handleStockPress(item)}
     >
       <View style={styles.resultHeader}>
-        <Text style={styles.symbol}>{item['1. symbol']}</Text>
-        <Text style={styles.matchScore}>
+        <View style={styles.symbolContainer}>
+          <StockLogo symbol={item['1. symbol']} size={32} />
+          <Text style={styles.symbol}>{item['1. symbol']}</Text>
+        </View>
+        {/* <Text style={styles.matchScore}>
           {(parseFloat(item['9. matchScore']) * 100).toFixed(0)}% match
-        </Text>
+        </Text> */}
       </View>
       
       <Text style={styles.companyName} numberOfLines={2}>

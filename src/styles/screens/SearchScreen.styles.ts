@@ -68,10 +68,16 @@ export const searchScreenStyles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  symbolContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
   symbol: {
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.text,
+    marginLeft: 8,
   },
   matchScore: {
     fontSize: 12,

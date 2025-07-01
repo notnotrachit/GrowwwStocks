@@ -53,7 +53,7 @@ function MainTabs() {
         name="Explore" 
         component={ExploreScreen}
         options={{
-          title: 'Stocks App',
+          title: 'Home',
         }}
       />
       <Tab.Screen 

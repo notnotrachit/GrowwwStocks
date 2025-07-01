@@ -27,6 +27,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorMessage from '../../components/common/ErrorMessage';
 import StockChart from '../../components/charts/StockChart';
 import AddToWatchlistModal from '../../components/modals/AddToWatchlistModal';
+import StockLogo from '../../components/common/StockLogo';
 import { isCompanyDataEmpty, hasMinimalCompanyData } from '../../utils/companyDataValidator';
 import { getAvailableMetrics, getAvailableCompanyInfo, hasValue } from '../../utils/stockDataHelpers';
 
@@ -187,8 +188,13 @@ const ProductScreen: React.FC = () => {
         {stock && (
           <View style={styles.priceSection}>
             <View style={styles.priceHeader}>
-              <Text style={styles.stockSymbol}>{stock.symbol}</Text>
-              <Text style={styles.stockName}>{stock.name}</Text>
+              <View style={styles.stockTitleContainer}>
+                <StockLogo symbol={stock.symbol} size={48} />
+                <View style={styles.stockTitleText}>
+                  <Text style={styles.stockSymbol}>{stock.symbol}</Text>
+                  <Text style={styles.stockName}>{stock.name}</Text>
+                </View>
+              </View>
             </View>
             <View style={styles.priceInfo}>
               <Text style={styles.currentPrice}>${parseFloat(stock.price).toFixed(4)}</Text>
