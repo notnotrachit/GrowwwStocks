@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { View, FlatList, StyleSheet, RefreshControl } from "react-native";
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+  TouchableOpacity,
+} from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RouteProp } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { RootStackParamList, Stock, LoadingState } from "../../types";
 
@@ -22,6 +29,11 @@ import { alphaVantageApi } from "../../services/alphaVantageApi";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import StockCard from "../../components/cards/StockCard";
+import AnimatedHeader from "../../components/common/AnimatedHeader";
+import {
+  ViewAllScreenSkeleton,
+  LoadMoreSkeleton,
+} from "../../components/common/SkeletonLayouts";
 
 type ViewAllScreenRouteProp = RouteProp<RootStackParamList, "ViewAllScreen">;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -106,11 +118,7 @@ const ViewAllScreen: React.FC = () => {
   const renderFooter = () => {
     if (!isLoadingMore) return null;
 
-    return (
-      <View style={createStyles(colors).footerLoader}>
-        <LoadingSpinner size="small" message="Loading more..." />
-      </View>
-    );
+    return <LoadMoreSkeleton />;
   };
 
   const getItemLayout = (_: any, index: number) => ({
@@ -120,7 +128,7 @@ const ViewAllScreen: React.FC = () => {
   });
 
   if (loadingState.isLoading) {
-    return <LoadingSpinner message={`Loading ${title.toLowerCase()}...`} />;
+    return <ViewAllScreenSkeleton title={title} />;
   }
 
   if (loadingState.error) {
@@ -131,6 +139,18 @@ const ViewAllScreen: React.FC = () => {
 
   return (
     <View style={createStyles(colors).container}>
+      <AnimatedHeader
+        title={title}
+        subtitle={`${stocks.length} stocks`}
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+        rightComponent={
+          <TouchableOpacity onPress={handleRefresh}>
+            <Ionicons name="refresh" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        }
+      />
+
       <FlatList
         data={stocks}
         renderItem={renderStockCard}

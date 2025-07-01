@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  Animated,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -24,6 +25,11 @@ import { productScreenStyles } from "../../styles/screens/ProductScreen.styles";
 import useTheme from "../../hooks/useTheme";
 import { alphaVantageApi } from "../../services/alphaVantageApi";
 import { watchlistService } from "../../services/watchlistService";
+import {
+  createFadeInAnimation,
+  createSlideInAnimation,
+  createStaggeredAnimation,
+} from "../../utils/animations";
 
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ErrorMessage from "../../components/common/ErrorMessage";
@@ -32,6 +38,7 @@ import AddToWatchlistModal from "../../components/modals/AddToWatchlistModal";
 import StockLogo from "../../components/common/StockLogo";
 import Tag from "../../components/common/Tag";
 import MetricCard from "../../components/common/MetricCard";
+import { ProductScreenSkeleton } from "../../components/common/SkeletonLayouts";
 import {
   isCompanyDataEmpty,
   hasMinimalCompanyData,
@@ -52,6 +59,12 @@ const ProductScreen: React.FC = () => {
   const { symbol, name } = route.params;
   const { colors } = useTheme();
   const styles = productScreenStyles(colors);
+
+  // Animation refs
+  const priceAnimRef = useRef(new Animated.Value(0)).current;
+  const tagsAnimRef = useRef(new Animated.Value(0)).current;
+  const chartAnimRef = useRef(new Animated.Value(0)).current;
+  const aboutAnimRef = useRef(new Animated.Value(0)).current;
 
   const [companyData, setCompanyData] = useState<CompanyOverview | null>(null);
   const [chartData, setChartData] = useState<StockTimeSeries | null>(null);
@@ -96,6 +109,16 @@ const ProductScreen: React.FC = () => {
       setCompanyData(companyResult);
       setChartData(chartResult);
       setLoadingState({ isLoading: false, error: null });
+
+      // Trigger staggered animations
+      const animations = [
+        createFadeInAnimation(priceAnimRef, 300),
+        createFadeInAnimation(tagsAnimRef, 300),
+        createFadeInAnimation(chartAnimRef, 300),
+        createFadeInAnimation(aboutAnimRef, 300),
+      ];
+
+      createStaggeredAnimation(animations, 150).start();
     } catch (error) {
       console.error("Error loading data:", error);
       setLoadingState({
@@ -180,7 +203,7 @@ const ProductScreen: React.FC = () => {
   };
 
   if (loadingState.isLoading) {
-    return <LoadingSpinner message="Loading stock details..." />;
+    return <ProductScreenSkeleton />;
   }
 
   if (loadingState.error) {
@@ -252,7 +275,11 @@ const ProductScreen: React.FC = () => {
                 <View style={styles.stockTitleText}>
                   <Text style={styles.stockSymbol}>{stock.symbol}</Text>
                   <View style={styles.nameRow}>
-                    <Text style={styles.stockName} numberOfLines={2}>
+                    <Text
+                      style={styles.stockName}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
                       {stock.name}
                     </Text>
                     {companyData && companyData.OfficialSite && (
@@ -303,6 +330,7 @@ const ProductScreen: React.FC = () => {
                   label={tag.label}
                   value={tag.value}
                   variant={tag.variant}
+                  delay={index * 50}
                 />
               ))}
             </View>

@@ -16,6 +16,11 @@ import { alphaVantageApi } from "../../services/alphaVantageApi";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import EmptyState from "../../components/common/EmptyState";
 import StockLogo from "../../components/common/StockLogo";
+import AnimatedHeader from "../../components/common/AnimatedHeader";
+import {
+  SearchScreenSkeleton,
+  SearchResultsSkeleton,
+} from "../../components/common/SkeletonLayouts";
 import { searchScreenStyles } from "../../styles/screens/SearchScreen.styles";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -94,7 +99,7 @@ const SearchScreen: React.FC = () => {
 
   const renderContent = () => {
     if (loadingState.isLoading) {
-      return <LoadingSpinner message="Searching..." />;
+      return <SearchResultsSkeleton />;
     }
 
     if (loadingState.error) {
@@ -141,6 +146,27 @@ const SearchScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <AnimatedHeader
+        title="Search Stocks"
+        subtitle={
+          searchResults.length > 0
+            ? `${searchResults.length} results found`
+            : "Find stocks and ETFs"
+        }
+        rightComponent={
+          searchQuery.length > 0 ? (
+            <TouchableOpacity
+              onPress={() => {
+                setSearchQuery("");
+                setSearchResults([]);
+              }}
+            >
+              <Ionicons name="close" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          ) : null
+        }
+      />
+
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
           <Ionicons name="search" size={20} color={colors.textSecondary} />

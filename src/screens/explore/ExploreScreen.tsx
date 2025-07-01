@@ -30,6 +30,9 @@ import { alphaVantageApi } from "../../services/alphaVantageApi";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import StockCard from "../../components/cards/StockCard";
+import { ShimmerList } from "../../components/common/ShimmerLoader";
+import AnimatedHeader from "../../components/common/AnimatedHeader";
+import FloatingActionButton from "../../components/common/FloatingActionButton";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -124,7 +127,58 @@ const ExploreScreen: React.FC = () => {
   );
 
   if (loadingState.isLoading) {
-    return <LoadingSpinner message="Loading market data..." />;
+    return (
+      <View style={styles(colors).container}>
+        <AnimatedHeader
+          title="Explore Stocks"
+          rightComponent={
+            <TouchableOpacity
+              onPress={() => navigation.navigate("SearchScreen")}
+            >
+              <Ionicons name="search" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          }
+        />
+
+        <FlatList
+          data={[1]}
+          renderItem={() => (
+            <View>
+              <View style={styles(colors).section}>
+                <View style={styles(colors).sectionHeader}>
+                  <Text style={styles(colors).sectionTitle}>Top Gainers</Text>
+                  <TouchableOpacity onPress={() => handleViewAll("gainers")}>
+                    <Text style={styles(colors).viewAllText}>View All</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles(colors).gridContainer}>
+                  <ShimmerList count={4} />
+                </View>
+              </View>
+
+              <View style={styles(colors).section}>
+                <View style={styles(colors).sectionHeader}>
+                  <Text style={styles(colors).sectionTitle}>Top Losers</Text>
+                  <TouchableOpacity onPress={() => handleViewAll("losers")}>
+                    <Text style={styles(colors).viewAllText}>View All</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles(colors).gridContainer}>
+                  <ShimmerList count={4} />
+                </View>
+              </View>
+            </View>
+          )}
+          keyExtractor={() => "sections"}
+          showsVerticalScrollIndicator={false}
+        />
+
+        <FloatingActionButton
+          icon="search"
+          onPress={() => navigation.navigate("SearchScreen")}
+        />
+      </View>
+    );
   }
 
   if (loadingState.error) {
@@ -137,6 +191,15 @@ const ExploreScreen: React.FC = () => {
 
   return (
     <View style={styles(colors).container}>
+      <AnimatedHeader
+        title="Explore Stocks"
+        rightComponent={
+          <TouchableOpacity onPress={() => navigation.navigate("SearchScreen")}>
+            <Ionicons name="search" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        }
+      />
+
       <FlatList
         data={[1]}
         renderItem={() => (
@@ -154,6 +217,11 @@ const ExploreScreen: React.FC = () => {
           />
         }
         showsVerticalScrollIndicator={false}
+      />
+
+      <FloatingActionButton
+        icon="search"
+        onPress={() => navigation.navigate("SearchScreen")}
       />
     </View>
   );

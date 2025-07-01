@@ -57,6 +57,7 @@ function MainTabs() {
         component={ExploreScreen}
         options={{
           title: "Home",
+          headerShown: false, // Hide navigation header since we use AnimatedHeader
         }}
       />
       <Tab.Screen
@@ -64,6 +65,7 @@ function MainTabs() {
         component={WatchlistScreen}
         options={{
           title: "Watchlist",
+          headerShown: false, // Hide navigation header since we use AnimatedHeader
         }}
       />
     </Tab.Navigator>
@@ -114,15 +116,15 @@ export default function AppNavigator() {
         <Stack.Screen
           name="ViewAllScreen"
           component={ViewAllScreen}
-          options={({ route }) => ({
-            title: route.params.title,
-          })}
+          options={{
+            headerShown: false, // Hide navigation header since we use AnimatedHeader
+          }}
         />
         <Stack.Screen
           name="SearchScreen"
           component={SearchScreen}
           options={{
-            title: "Search Stocks",
+            headerShown: false, // Hide navigation header since we use AnimatedHeader
           }}
         />
       </Stack.Navigator>

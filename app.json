@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1E88E5"
+      "backgroundColor": "#708aff"
     },
     "ios": {
       "supportsTablet": true
@@ -18,12 +18,17 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#708aff"
       },
       "package": "com.notnotrachit.stocksapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "45a0bdcb-0215-4bec-8403-31b0255c918c"
+      }
     }
   }
 }

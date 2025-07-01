@@ -14,16 +14,16 @@ export const productScreenStyles = (colors: ThemeColors) => StyleSheet.create({
   // Price Section
   priceSection: {
     backgroundColor: colors.surface,
-    padding: DIMENSIONS.padding + 4,
-    marginBottom: DIMENSIONS.margin,
-    borderRadius: 16,
+    padding: DIMENSIONS.padding + 8,
+    marginBottom: DIMENSIONS.margin + 4,
+    borderRadius: 20,
     marginHorizontal: DIMENSIONS.margin,
     marginTop: DIMENSIONS.margin,
-    elevation: 2,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
   priceHeader: {
     marginBottom: 16,
@@ -40,6 +40,7 @@ export const productScreenStyles = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
+    justifyContent: 'space-between',
   },
   websiteButton: {
     flexDirection: 'row',
@@ -51,6 +52,7 @@ export const productScreenStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 3,
     marginLeft: 8,
+    flexShrink: 0, // Prevent shrinking
   },
   websiteButtonText: {
     color: colors.primary,
@@ -69,6 +71,8 @@ export const productScreenStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 4,
     fontWeight: '500',
+    flex: 1, // Take available space
+    marginRight: 8, // Add margin to separate from button
   },
   priceInfo: {
     flexDirection: 'row',
@@ -92,14 +96,14 @@ export const productScreenStyles = (colors: ThemeColors) => StyleSheet.create({
   tagsContainer: {
     backgroundColor: colors.surface,
     marginHorizontal: DIMENSIONS.margin,
-    marginBottom: DIMENSIONS.margin,
-    borderRadius: 16,
-    padding: DIMENSIONS.padding,
-    elevation: 1,
+    marginBottom: DIMENSIONS.margin + 4,
+    borderRadius: 20,
+    padding: DIMENSIONS.padding + 4,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
   },
   tagsWrapper: {
     flexDirection: 'row',
@@ -111,28 +115,28 @@ export const productScreenStyles = (colors: ThemeColors) => StyleSheet.create({
   chartContainer: {
     backgroundColor: colors.surface,
     marginHorizontal: DIMENSIONS.margin,
-    marginBottom: DIMENSIONS.margin,
-    borderRadius: 16,
+    marginBottom: DIMENSIONS.margin + 4,
+    borderRadius: 20,
     overflow: 'hidden',
-    elevation: 1,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
   },
   
   // Sections
   section: {
     backgroundColor: colors.surface,
     marginHorizontal: DIMENSIONS.margin,
-    marginBottom: DIMENSIONS.margin,
-    padding: DIMENSIONS.padding + 4,
-    borderRadius: 16,
-    elevation: 1,
+    marginBottom: DIMENSIONS.margin + 4,
+    padding: DIMENSIONS.padding + 8,
+    borderRadius: 20,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
   },
   sectionTitle: {
     fontSize: 20,

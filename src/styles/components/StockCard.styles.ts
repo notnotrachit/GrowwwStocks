@@ -5,19 +5,19 @@ import { ThemeColors } from '../../hooks/useTheme';
 export const stockCardStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     backgroundColor: colors.surface,
-    borderRadius: DIMENSIONS.borderRadius,
-    padding: DIMENSIONS.padding,
+    borderRadius: 16,
+    padding: DIMENSIONS.padding + 2,
     margin: DIMENSIONS.margin / 2,
     flex: 1,
-    minHeight: 120,
+    minHeight: 130,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: DIMENSIONS.cardElevation,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: DIMENSIONS.cardElevation,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   header: {
     flexDirection: 'row',

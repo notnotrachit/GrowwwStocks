@@ -20,6 +20,12 @@ import { watchlistService } from "../../services/watchlistService";
 import EmptyState from "../../components/common/EmptyState";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import StockCard from "../../components/cards/StockCard";
+import AnimatedHeader from "../../components/common/AnimatedHeader";
+import FloatingActionButton from "../../components/common/FloatingActionButton";
+import {
+  WatchlistScreenSkeleton,
+  WatchlistDetailSkeleton,
+} from "../../components/common/SkeletonLayouts";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -178,25 +184,25 @@ const WatchlistScreen: React.FC = () => {
   );
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading watchlists..." />;
+    return selectedWatchlist ? (
+      <WatchlistDetailSkeleton name={selectedWatchlist.name} />
+    ) : (
+      <WatchlistScreenSkeleton />
+    );
   }
 
   // Show individual watchlist view
   if (selectedWatchlist) {
     return (
       <View style={styles(colors).container}>
-        <View style={styles(colors).header}>
-          <TouchableOpacity
-            style={styles(colors).backButton}
-            onPress={handleBackToWatchlists}
-          >
-            <Ionicons name="arrow-back" size={24} color={colors.primary} />
-          </TouchableOpacity>
-          <Text style={styles(colors).headerTitle}>
-            {selectedWatchlist.name}
-          </Text>
-          <View style={styles(colors).placeholder} />
-        </View>
+        <AnimatedHeader
+          title={selectedWatchlist.name}
+          subtitle={`${selectedWatchlist.stocks.length} stock${
+            selectedWatchlist.stocks.length !== 1 ? "s" : ""
+          }`}
+          showBackButton={true}
+          onBackPress={handleBackToWatchlists}
+        />
 
         {selectedWatchlist.stocks.length > 0 ? (
           <FlatList
@@ -227,6 +233,13 @@ const WatchlistScreen: React.FC = () => {
   // Show watchlists overview
   return (
     <View style={styles(colors).container}>
+      <AnimatedHeader
+        title="Watchlists"
+        subtitle={`${watchlists.length} watchlist${
+          watchlists.length !== 1 ? "s" : ""
+        }`}
+      />
+
       {watchlists.length > 0 ? (
         <FlatList
           data={watchlists}

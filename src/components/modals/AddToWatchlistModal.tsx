@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,12 +9,19 @@ import {
   Modal,
   ScrollView,
   Dimensions,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Stock, Watchlist } from "../../types";
 import { DIMENSIONS } from "../../constants";
 import { useTheme } from "../../hooks/useTheme";
 import { watchlistService } from "../../services/watchlistService";
+import {
+  createModalSlideAnimation,
+  createBackdropFadeAnimation,
+  createFadeInAnimation,
+  createElasticAnimation,
+} from "../../utils/animations";
 
 interface AddToWatchlistModalProps {
   isVisible: boolean;
@@ -36,11 +43,31 @@ const AddToWatchlistModal: React.FC<AddToWatchlistModalProps> = ({
   const [selectedWatchlists, setSelectedWatchlists] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Animation values
+  const slideAnim = useRef(
+    new Animated.Value(Dimensions.get("window").height)
+  ).current;
+  const backdropAnim = useRef(new Animated.Value(0)).current;
+  const contentAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (isVisible) {
       loadWatchlists();
       setNewWatchlistName("");
       setSelectedWatchlists([]);
+
+      // Show modal with animations
+      Animated.parallel([
+        createBackdropFadeAnimation(backdropAnim, 1),
+        createModalSlideAnimation(slideAnim, 0),
+        createFadeInAnimation(contentAnim, 300, 100),
+      ]).start();
+    } else {
+      // Hide modal with animations
+      Animated.parallel([
+        createBackdropFadeAnimation(backdropAnim, 0),
+        createModalSlideAnimation(slideAnim, Dimensions.get("window").height),
+      ]).start();
     }
   }, [isVisible]);
 
@@ -167,145 +194,170 @@ const AddToWatchlistModal: React.FC<AddToWatchlistModalProps> = ({
     <Modal
       visible={isVisible}
       transparent={true}
-      animationType="slide"
+      animationType="none"
       onRequestClose={onClose}
     >
-      <TouchableOpacity
-        style={styles.overlay}
-        activeOpacity={1}
-        onPress={onClose}
+      <Animated.View
+        style={[
+          styles.overlay,
+          {
+            backgroundColor: backdropAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: ["rgba(0,0,0,0)", "rgba(0,0,0,0.5)"],
+            }),
+          },
+        ]}
       >
-        <View style={styles.modalContainer}>
-          <TouchableOpacity
-            style={styles.container}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
+        <TouchableOpacity
+          style={styles.overlayTouchable}
+          activeOpacity={1}
+          onPress={onClose}
+        >
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              {
+                transform: [{ translateY: slideAnim }],
+                opacity: contentAnim,
+              },
+            ]}
           >
-            <View style={styles.header}>
-              <Text style={styles.title}>Manage Watchlists</Text>
-              <TouchableOpacity style={styles.doneButton} onPress={onClose}>
-                <Text style={styles.doneButtonText}>Done</Text>
-              </TouchableOpacity>
-            </View>
-
-            {stock && (
-              <View style={styles.stockInfo}>
-                <Text style={styles.stockSymbol}>{stock.symbol}</Text>
-                <Text style={styles.stockName}>{stock.name}</Text>
-              </View>
-            )}
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Create New Watchlist</Text>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="New Watchlist Name"
-                  value={newWatchlistName}
-                  onChangeText={setNewWatchlistName}
-                  editable={!isLoading}
-                />
-                <TouchableOpacity
-                  style={[styles.addButton, isLoading && styles.disabledButton]}
-                  onPress={handleCreateNewWatchlist}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.addButtonText}>Add</Text>
+            <TouchableOpacity
+              style={styles.container}
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View style={styles.header}>
+                <Text style={styles.title}>Manage Watchlists</Text>
+                <TouchableOpacity style={styles.doneButton} onPress={onClose}>
+                  <Text style={styles.doneButtonText}>Done</Text>
                 </TouchableOpacity>
               </View>
-            </View>
 
-            <View style={[styles.section, styles.lastSection]}>
-              <Text style={styles.sectionTitle}>Existing Watchlists</Text>
-              <Text style={styles.instructionText}>
-                Tap to add/remove from watchlists
-              </Text>
-
-              {watchlists.length > 0 ? (
-                <>
-                  <ScrollView
-                    style={styles.watchlistList}
-                    showsVerticalScrollIndicator={false}
-                  >
-                    {watchlists.map((item) => {
-                      const isSelected = selectedWatchlists.includes(item.id);
-                      const hasStock =
-                        stock &&
-                        item.stocks.some((s) => s.symbol === stock.symbol);
-
-                      return (
-                        <TouchableOpacity
-                          key={item.id}
-                          style={styles.watchlistItem}
-                          onPress={() => handleToggleWatchlist(item.id)}
-                        >
-                          <View style={styles.watchlistInfo}>
-                            <Text style={styles.watchlistName}>
-                              {item.name}
-                            </Text>
-                            <Text style={styles.stockCount}>
-                              {item.stocks.length} stocks
-                              {hasStock && (
-                                <Text style={styles.currentlyInText}>
-                                  {" "}
-                                  - Currently in
-                                </Text>
-                              )}
-                            </Text>
-                          </View>
-
-                          {hasStock ? (
-                            <Ionicons
-                              name={
-                                isSelected
-                                  ? "remove-circle"
-                                  : "checkmark-circle"
-                              }
-                              size={24}
-                              color={
-                                isSelected ? colors.error : colors.positive
-                              }
-                            />
-                          ) : (
-                            <Ionicons
-                              name={
-                                isSelected ? "add-circle" : "add-circle-outline"
-                              }
-                              size={24}
-                              color={
-                                isSelected
-                                  ? colors.primary
-                                  : colors.textSecondary
-                              }
-                            />
-                          )}
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </ScrollView>
-
-                  {selectedWatchlists.length > 0 && (
-                    <TouchableOpacity
-                      style={[
-                        styles.confirmButton,
-                        isLoading && styles.disabledButton,
-                      ]}
-                      onPress={handleApplyChanges}
-                      disabled={isLoading}
-                    >
-                      <Text style={styles.confirmButtonText}>
-                        Apply Changes ({selectedWatchlists.length})
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </>
-              ) : (
-                <Text style={styles.emptyText}>No watchlists found</Text>
+              {stock && (
+                <View style={styles.stockInfo}>
+                  <Text style={styles.stockSymbol}>{stock.symbol}</Text>
+                  <Text style={styles.stockName}>{stock.name}</Text>
+                </View>
               )}
-            </View>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Create New Watchlist</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="New Watchlist Name"
+                    value={newWatchlistName}
+                    onChangeText={setNewWatchlistName}
+                    editable={!isLoading}
+                  />
+                  <TouchableOpacity
+                    style={[
+                      styles.addButton,
+                      isLoading && styles.disabledButton,
+                    ]}
+                    onPress={handleCreateNewWatchlist}
+                    disabled={isLoading}
+                  >
+                    <Text style={styles.addButtonText}>Add</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={[styles.section, styles.lastSection]}>
+                <Text style={styles.sectionTitle}>Existing Watchlists</Text>
+                <Text style={styles.instructionText}>
+                  Tap to add/remove from watchlists
+                </Text>
+
+                {watchlists.length > 0 ? (
+                  <>
+                    <ScrollView
+                      style={styles.watchlistList}
+                      showsVerticalScrollIndicator={false}
+                    >
+                      {watchlists.map((item) => {
+                        const isSelected = selectedWatchlists.includes(item.id);
+                        const hasStock =
+                          stock &&
+                          item.stocks.some((s) => s.symbol === stock.symbol);
+
+                        return (
+                          <TouchableOpacity
+                            key={item.id}
+                            style={styles.watchlistItem}
+                            onPress={() => handleToggleWatchlist(item.id)}
+                          >
+                            <View style={styles.watchlistInfo}>
+                              <Text style={styles.watchlistName}>
+                                {item.name}
+                              </Text>
+                              <Text style={styles.stockCount}>
+                                {item.stocks.length} stocks
+                                {hasStock && (
+                                  <Text style={styles.currentlyInText}>
+                                    {" "}
+                                    - Currently in
+                                  </Text>
+                                )}
+                              </Text>
+                            </View>
+
+                            {hasStock ? (
+                              <Ionicons
+                                name={
+                                  isSelected
+                                    ? "remove-circle"
+                                    : "checkmark-circle"
+                                }
+                                size={24}
+                                color={
+                                  isSelected ? colors.error : colors.positive
+                                }
+                              />
+                            ) : (
+                              <Ionicons
+                                name={
+                                  isSelected
+                                    ? "add-circle"
+                                    : "add-circle-outline"
+                                }
+                                size={24}
+                                color={
+                                  isSelected
+                                    ? colors.primary
+                                    : colors.textSecondary
+                                }
+                              />
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+
+                    {selectedWatchlists.length > 0 && (
+                      <TouchableOpacity
+                        style={[
+                          styles.confirmButton,
+                          isLoading && styles.disabledButton,
+                        ]}
+                        onPress={handleApplyChanges}
+                        disabled={isLoading}
+                      >
+                        <Text style={styles.confirmButtonText}>
+                          Apply Changes ({selectedWatchlists.length})
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
+                ) : (
+                  <Text style={styles.emptyText}>No watchlists found</Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        </TouchableOpacity>
+      </Animated.View>
     </Modal>
   );
 };
@@ -314,10 +366,11 @@ const createStyles = (colors: any) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
       justifyContent: "flex-end",
-      margin: 0,
-      padding: 0,
+    },
+    overlayTouchable: {
+      flex: 1,
+      justifyContent: "flex-end",
     },
     modalContainer: {
       backgroundColor: colors.surface,
