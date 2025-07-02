@@ -247,6 +247,7 @@ const AddToWatchlistModal: React.FC<AddToWatchlistModalProps> = ({
                   <TextInput
                     style={styles.input}
                     placeholder="New Watchlist Name"
+                    placeholderTextColor={colors.textSecondary}
                     value={newWatchlistName}
                     onChangeText={setNewWatchlistName}
                     editable={!isLoading}
@@ -454,6 +455,8 @@ const createStyles = (colors: any) =>
       padding: 12,
       marginRight: 12,
       fontSize: 16,
+      color: colors.text,
+      backgroundColor: colors.surface,
     },
     addButton: {
       backgroundColor: colors.primary,
