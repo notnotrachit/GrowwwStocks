@@ -74,7 +74,7 @@ export const STORAGE_KEYS = {
 
 // Default values
 export const DEFAULT_VALUES = {
-  ITEMS_PER_PAGE: 20,
+  ITEMS_PER_PAGE: 10,
   MAX_WATCHLISTS: 10,
   CHART_DAYS: 30,
 };

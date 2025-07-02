@@ -50,33 +50,27 @@ const ViewAllScreen: React.FC = () => {
     error: null,
   });
   const [refreshing, setRefreshing] = useState(false);
+  const [allStocks, setAllStocks] = useState<Stock[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreData, setHasMoreData] = useState(true);
 
   useEffect(() => {
     loadData();
   }, [type]);
 
-  const loadData = async (page = 1) => {
+  const loadData = async () => {
     try {
-      if (page === 1) {
-        setLoadingState({ isLoading: true, error: null });
-      } else {
-        setIsLoadingMore(true);
-      }
+      setLoadingState({ isLoading: true, error: null });
 
       const result = await alphaVantageApi.getTopGainersLosers();
       const newStocks =
         type === "gainers" ? result.top_gainers : result.top_losers;
-
-      if (page === 1) {
-        setStocks(newStocks);
-        setCurrentPage(1);
-      } else {
-        // For pagination simulation, we'll just show the same data
-        // In a real app, you'd have actual pagination from the API
-        setStocks((prev) => [...prev, ...newStocks]);
-      }
+      
+      setAllStocks(newStocks);
+      setCurrentPage(1);
+      setStocks(newStocks.slice(0, DEFAULT_VALUES.ITEMS_PER_PAGE));
+      setHasMoreData(newStocks.length > DEFAULT_VALUES.ITEMS_PER_PAGE);
 
       setLoadingState({ isLoading: false, error: null });
     } catch (error) {
@@ -85,22 +79,50 @@ const ViewAllScreen: React.FC = () => {
         isLoading: false,
         error: error instanceof Error ? error.message : "Failed to load data",
       });
-    } finally {
-      setIsLoadingMore(false);
     }
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadData(1);
+    await loadData();
     setRefreshing(false);
   };
 
   const handleLoadMore = () => {
-    if (!isLoadingMore && stocks.length >= DEFAULT_VALUES.ITEMS_PER_PAGE) {
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
-      loadData(nextPage);
+    console.log('handleLoadMore called', { 
+      isLoadingMore, 
+      hasMoreData, 
+      currentStocksLength: stocks.length, 
+      allStocksLength: allStocks.length,
+      currentPage 
+    });
+    
+    if (!isLoadingMore && hasMoreData) {
+      setIsLoadingMore(true);
+      
+      setTimeout(() => {
+        const nextPage = currentPage + 1;
+        const startIndex = currentPage * DEFAULT_VALUES.ITEMS_PER_PAGE; // Fix: use currentPage, not nextPage-1
+        const endIndex = startIndex + DEFAULT_VALUES.ITEMS_PER_PAGE;
+        const nextBatch = allStocks.slice(startIndex, endIndex);
+        
+        console.log('Loading more data', { 
+          nextPage, 
+          startIndex, 
+          endIndex, 
+          nextBatchLength: nextBatch.length 
+        });
+        
+        if (nextBatch.length > 0) {
+          setStocks(prev => [...prev, ...nextBatch]);
+          setCurrentPage(nextPage);
+          setHasMoreData(endIndex < allStocks.length);
+        } else {
+          setHasMoreData(false);
+        }
+        
+        setIsLoadingMore(false);
+      }, 500);
     }
   };
 
@@ -133,7 +155,7 @@ const ViewAllScreen: React.FC = () => {
 
   if (loadingState.error) {
     return (
-      <ErrorMessage message={loadingState.error} onRetry={() => loadData(1)} />
+      <ErrorMessage message={loadingState.error} onRetry={loadData} />
     );
   }
 
@@ -166,12 +188,11 @@ const ViewAllScreen: React.FC = () => {
           />
         }
         onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.1}
+        onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
-        getItemLayout={getItemLayout}
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={10}
-        windowSize={10}
+        removeClippedSubviews={false}
+        maxToRenderPerBatch={20}
+        windowSize={5}
         initialNumToRender={10}
         showsVerticalScrollIndicator={false}
       />
