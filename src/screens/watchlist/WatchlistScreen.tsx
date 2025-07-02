@@ -206,6 +206,7 @@ const WatchlistScreen: React.FC = () => {
 
         {selectedWatchlist.stocks.length > 0 ? (
           <FlatList
+            key={`watchlist-${selectedWatchlist.id}`}
             data={selectedWatchlist.stocks}
             renderItem={renderStockItem}
             keyExtractor={(item) => item.symbol}

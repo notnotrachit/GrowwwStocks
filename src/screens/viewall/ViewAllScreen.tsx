@@ -152,6 +152,7 @@ const ViewAllScreen: React.FC = () => {
       />
 
       <FlatList
+        key="viewall-stocks"
         data={stocks}
         renderItem={renderStockCard}
         keyExtractor={(item, index) => `${item.symbol}-${index}`}

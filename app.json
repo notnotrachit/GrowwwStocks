@@ -13,7 +13,8 @@
       "backgroundColor": "#708aff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.notnotrachit.stocksapp"
     },
     "android": {
       "adaptiveIcon": {

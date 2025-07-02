@@ -116,6 +116,7 @@ const ExploreScreen: React.FC = () => {
       </View>
 
       <FlatList
+        key={`${type}-section`}
         data={stocks.slice(0, 4)} // Show only first 4 items
         renderItem={renderStockCard}
         keyExtractor={(item, index) => `${type}-${item.symbol}-${index}`}
